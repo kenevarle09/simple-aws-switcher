@@ -1,0 +1,17 @@
+{
+  "name": "aws-profile-switcher",
+  "version": "1.0.0",
+  "description": "AWS Profile Switcher",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kenneth Evarle",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/credential-providers": "^3.87.0",
+    "aws-sdk": "^2.1131.0",
+    "inquirer": "^8.2.4",
+    "uuid": "^8.3.2"
+  }
+}
