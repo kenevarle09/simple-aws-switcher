@@ -12,6 +12,11 @@
     "@aws-sdk/credential-providers": "^3.87.0",
     "aws-sdk": "^2.1131.0",
     "inquirer": "^8.2.4",
+    "pkg": "^5.6.0",
     "uuid": "^8.3.2"
+  },
+  "bin": {
+    "_sas_prompt_": "./index.js",
+    "_sas_": "./init.sh"
   }
 }
