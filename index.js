@@ -36,6 +36,7 @@ const choose_workspace_prompt = () => {
     {
         type: 'list',
         name: 'workspace',
+        loop: 'false',
         message: 'PLEASE SELECT WORKSPACE TO USE',
         choices: [new inquirer.Separator()].concat(workspaces.concat([new inquirer.Separator(),"Edit", "EXIT"]))
     }
