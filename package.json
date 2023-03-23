@@ -12,6 +12,8 @@
     "@aws-sdk/credential-providers": "^3.87.0",
     "aws-sdk": "^2.1131.0",
     "inquirer": "^8.2.4",
+    "inquirer-autocomplete-prompt": "^2.0.0",
+    "inquirer-search-list": "^1.2.6",
     "pkg": "^5.6.0",
     "uuid": "^8.3.2"
   },
