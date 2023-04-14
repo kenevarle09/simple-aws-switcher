@@ -15,7 +15,7 @@ Make sure that the things you add here replicates the information that you have 
 
 Example:
 
-Config File:
+AWS config File:
 ```
 [profile profile_name_1]
 sso_start_url = https://organization.awsapps.com/start#/
