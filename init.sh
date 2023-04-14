@@ -1,8 +1,8 @@
-#!/bin/usr/env bash
+#!/bin/bash
 # clear
-node /caylent/simple-aws-switcher/index.js
+node PATH/TO/simple-aws-switcher/index.js
 
-selected_profile="$(cat /caylent/simple-aws-switcher/.config/selected_profile)"
+selected_profile="$(cat PATH/TO/simple-aws-switcher/.config/selected_profile)"
 
 unset AWS_PROFILE
 export AWS_PROFILE="$selected_profile"
