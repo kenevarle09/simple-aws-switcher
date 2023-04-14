@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const sas_path = '/caylent/simple-aws-switcher/'
+const sas_path = 'PATH/TO/simple-aws-switcher/'
 const fs = require('fs');
 const inquirer = require('inquirer');
 const { exec } = require("child_process");
@@ -135,13 +135,14 @@ const choose_profile_prompt = () => {
                 }); 
                 exec(aws_sts_cmd, (error, stdout) => {
                     if (error) {
-                        console.log("\nPlease log in to continue");
-                        exec(aws_login_cmd, (error, stdout) => {
+                        console.log("\nPlease log in to continue\n");
+                        const login = exec(aws_login_cmd, (error, stdout) => {
                             if (error) {
                                 console.log(`error: ${error.message}`);
                                 return;
                             }
                             if (stdout) {
+                                console.log(stdout.message)
                                 console.log("Login success. Switching profile...");
                                 exec(aws_sts_cmd, (error, stdout) => {
                                     if (error) {
@@ -160,6 +161,9 @@ const choose_profile_prompt = () => {
                                     }
                                 })
                             }
+                        });
+                        login.stdout.on('data', function(data) {
+                            console.log(data); 
                         });
                     }
                     if (stdout) {
