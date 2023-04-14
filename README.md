@@ -14,6 +14,7 @@ Add your profiles to `.config/profiles.json`
 Make sure that the things you add here replicates the information that you have in your `~/.aws/config` file
 
 Example:
+
 Config File:
 ```
 [profile profile_name_1]
@@ -26,7 +27,7 @@ output = json
 ```
 Note: If you don't have profiles configure in your aws config file, you can run `aws configure sso` once to generate a profile.
 
-Proceed adding profiles to `.config/profiles.json`
+Proceed adding profiles to `.config/profiles.json` like below:
 
 ```json
 [
