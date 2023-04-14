@@ -22,7 +22,7 @@ inquirer.registerPrompt("search-list", inquirerPrompt)
 if (!fs.existsSync(sas_path+'.config')){fs.mkdirSync(sas_path+'.config');}
 
 //Make profile.json file
-// const default_profile = []
+
 if (!fs.existsSync(sas_path+'.config/profiles.json')) {
 fs.writeFile(sas_path+'.config/profiles.json', "[]", function(err) {
     if(err) {
@@ -52,24 +52,23 @@ for (const i in Object.keys(getWorkspaces)) {
 
 const import_profiles = () => {
 
-    var profile_list = getWorkspaces[workspace_index][selected_workspace]['profiles'].toString()
-    var profile_url = getWorkspaces[workspace_index][selected_workspace]['start-url']
-
     for (const i in match_profile_list) {
-
+        const profile_list_string = profile_list.toString()
         var profile_string = match_profile_list[i].split("\n")
+
         profile_name = profile_string[0].match(re_profile_name)
 
-        if (profile_string[1].includes(profile_url) && !(profile_list.includes(profile_name))) {
-            profile_list = profile_list.concat(`,${profile_name[0]}`)
+        if (profile_string[1].includes(profile_url) && !(profile_list_string.includes(profile_name))) {
+            profile_list = profile_list_string.concat(`,${profile_name[0]}`)
         }
     }
 
-    var aws_profiles = profile_list.split(",").sort()
+    var aws_profiles = profile_list_string.split(",").sort()
     console.log(aws_profiles)
 }
 
 const choose_workspace_prompt = () => {
+
     inquirer
     .prompt([
     {
@@ -99,11 +98,12 @@ const choose_workspace_prompt = () => {
 }
 
 const choose_profile_prompt = () => {
+    
     var profile_list = getWorkspaces[workspace_index][selected_workspace]['profiles']
     profile_message = "CHOOSE A PROFILE"
     if (profile_list !== 'undefined' && profile_list.length === 0) {
         profile_message = "No Profile Available"
-        profile_list = ["Add profiles"]
+        profile_list = ["Add profile"]
     }
     inquirer
         .prompt([
@@ -116,12 +116,15 @@ const choose_profile_prompt = () => {
             }
         ])
         .then((selected) => {
-            if (selected.profile === back_prompt){
+            if (selected.profile === "Add profile"){
+                add_profile_prompt()
+            }
+            else if (selected.profile === back_prompt){
                 choose_workspace_prompt()
             }
 
             else if (selected.profile === editor){
-                    edit_profile_prompt()
+                edit_profile_prompt()
             }
             else {
                 selected_profile = selected.profile
@@ -297,22 +300,133 @@ const edit_profile_prompt = () => {
         type: 'list',
         name: 'add_remove',
         message: 'What would you like to do?',
-        choices: ["Import profiles", "Add profile", "Remove profile"]
+        choices: ["Import profile", "Add profile", "Remove profile", back_prompt]
     }
     ])
     .then((selected) => {
-        if (selected.add_remove === 'Import profiles') {
+        if (selected.add_remove === 'Import profile') {
             import_profiles()
         }
-        else if (selected.add_remove === 'Add workspace') {
+        else if (selected.add_remove === 'Add profile') {
             add_profile_prompt()
         }
-        else if (selected.add_remove === 'Remove workspace') {
+        else if (selected.add_remove === 'Remove profile') {
             remove_profile_prompt()
         }
-        choose_profile_prompt()
+        else if (selected.add_remove === back_prompt) {
+            choose_profile_prompt()
+        }
+        // choose_profile_prompt()
     })
 
+}
+
+const add_profile_prompt = () => {
+
+    var profile_list = getWorkspaces[workspace_index][selected_workspace]['profiles']
+    var profile_url = getWorkspaces[workspace_index][selected_workspace]['start-url']
+
+    inquirer
+        .prompt([
+            {
+                type: 'input',
+                name: 'add_profile',
+                message: 'Name for your profile: ',
+                prefix: prefix_prompt,
+                validate(value) {
+                    const pass = value.match(/^[A-Za-z]+$/);
+                    if (pass) {
+                      return true;
+                    }
+                    return 'Can only contain letters';
+                  }
+            }
+        ])
+        .then((value) => {
+            const new_profile = value.add_profile;
+            let new_data = {
+                [selected_workspace]: {
+                    "start_url": profile_url,
+                    "profiles": profile_list.concat(new_profile)
+                }
+            }
+            remove_workspace_index = workspaces.indexOf(selected_workspace);
+            delete getWorkspaces[workspace_index];
+            var newProfiles = getWorkspaces.filter(function(e) {
+                return e != null;
+            });
+            newProfiles.push(new_data)
+            fs.writeFile(sas_path+'.config/profiles.json', JSON.stringify(newProfiles), function (err) {
+                if (err) {
+                    console.log(`error: ${err}`);
+                }
+                if (stdout) {
+                    console.log(`${COLOR.fgGreen}Successfully added profile!${COLOR.reset}`)   
+                }
+            })
+        })
+
+}
+
+const cleanObject = (input) => {
+    if (typeof input === 'object' && input !== null) {
+      if(Array.isArray(input)) {
+        return input.map(cleanObject)
+                    .filter(item => item !== null && item !== undefined) 
+      }
+  
+      return Object.fromEntries(
+        Object.entries(input)
+              .map(([key, val]) => [key, cleanObject(val)])
+              .filter(([k, v]) => v !== null && v !== undefined)
+      );
+  
+    } 
+  
+    return input;
+  }
+
+const remove_profile_prompt = () => {
+    var profile_list = getWorkspaces[workspace_index][selected_workspace]['profiles']
+
+    inquirer
+    .prompt([
+        {
+            type: 'search-list',
+            name: 'remove_profile',
+            message: `${COLOR.fgYellow}Select Worksapce to remove${COLOR.reset}`,
+            prefix: prefix_prompt,
+            choices: profile_list.concat([back_prompt, exit_prompt])
+        }
+    ])
+    .then((selected) => {
+        if (selected.remove_profile === 'default') {
+            console.log("\nCannot remove default profile!\n");
+            remove_profile_prompt();
+        }
+        else if (selected.remove_profile === back_prompt)
+        {
+            edit_profile_prompt();   
+        } 
+        else if (selected.remove_profile === exit_prompt) {
+            console.log("\nGoodbye!")
+            return;
+        }
+        else {
+        remove_profile_index = profile_list.indexOf(selected.remove_profile);
+        delete profile_list[remove_profile_index];
+        var newProfile = cleanObject(getWorkspaces)
+        
+        fs.writeFile(sas_path+'.config/profiles.json', JSON.stringify(newProfile), function (err) {
+            if (err) {
+                console.log(`error: ${err}`);
+            }
+            if (stdout) {
+                console.log(`${COLOR.fgGreen}Successfully removed profile!${COLOR.reset}`)   
+            }
+        })
+    }
+    })
 }
 
 choose_workspace_prompt()
