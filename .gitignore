@@ -1,7 +1,6 @@
 node_modules/
 index copy.js
 test.js
-.config/
 .gitignore
 profiles**
 sas
