@@ -33,7 +33,7 @@ Proceed adding profiles to `.config/profiles.json` like below:
 [
   {
     "ORGANIZATION_NAME": {
-      "start_url": "https://prophero.awsapps.com/start#/",
+      "start_url": "https://organization.awsapps.com/start#/",
       "profiles": ["profile_name_1"]
     }
   }
@@ -43,6 +43,6 @@ Proceed adding profiles to `.config/profiles.json` like below:
 Inside `init.sh` change line 3 and 5 to reflect the path to `simple-aws-switcher` folder
 Inside `index.js` modify the `sas_path` variable to reflect the path to `simple-aws-switcher` folder
 
-Run `alias sas='. ~/kenevarle/simple-aws-switcher/init.sh'`
+Run `alias sas='. PATH/TO/simple-aws-switcher/init.sh'`
 
 Finally to execute, run `sas`
