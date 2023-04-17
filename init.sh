@@ -1,8 +1,10 @@
 #!/bin/bash
 # clear
-node /home/kdje-prophero/kenevarle/simple-aws-switcher/index.js
 
-selected_profile="$(cat /home/kdje-prophero/kenevarle/simple-aws-switcher/.config/selected_profile)"
+DIR="$(realpath `dirname $0`)"
+node ${DIR}/index.js
+
+selected_profile="$(cat ${DIR}/.config/selected_profile)"
 
 unset AWS_PROFILE
 export AWS_PROFILE="$selected_profile"

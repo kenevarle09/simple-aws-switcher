@@ -10,6 +10,12 @@ npm i
 ```
 
 ## Usage
+Run `alias sas='. PATH/TO/simple-aws-switcher/init.sh'`
+
+Finally to execute, run `sas`
+
+## Profile Configuration
+
 Add your profiles to `.config/profiles.json`
 Make sure that the things you add here replicates the information that you have in your `~/.aws/config` file
 
@@ -39,10 +45,3 @@ Proceed adding profiles to `.config/profiles.json` like below:
   }
 ]
 ```
-
-Inside `init.sh` change line 3 and 5 to reflect the path to `simple-aws-switcher` folder
-Inside `index.js` modify the `sas_path` variable to reflect the path to `simple-aws-switcher` folder
-
-Run `alias sas='. PATH/TO/simple-aws-switcher/init.sh'`
-
-Finally to execute, run `sas`
