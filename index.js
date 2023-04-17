@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const sas_path = 'PATH/TO/simple-aws-switcher/'
+const sas_path = '/home/kdje-prophero/kenevarle/simple-aws-switcher/'
 const fs = require('fs');
 const inquirer = require('inquirer');
 const { exec } = require("child_process");
@@ -24,11 +24,11 @@ if (!fs.existsSync(sas_path+'.config')){fs.mkdirSync(sas_path+'.config');}
 //Make profile.json file
 
 if (!fs.existsSync(sas_path+'.config/profiles.json')) {
-fs.writeFile(sas_path+'.config/profiles.json', "[]", function(err) {
-    if(err) {
-        return console.log(err);
-    }
-});
+    fs.writeFileSync(sas_path+'.config/profiles.json', '[{"default":{"profiles":["default"]}}]')
+}
+
+if (!fs.existsSync(sas_path+'.config/selected_profile')) {
+    fs.writeFileSync(sas_path+'.config/selected_profile', "default")
 }
 
 var getWorkspaces = JSON.parse(fs.readFileSync(sas_path+'.config/profiles.json', 'utf8'));
@@ -51,20 +51,15 @@ for (const i in Object.keys(getWorkspaces)) {
 
 
 const import_profiles = () => {
+    const aws_import_cmd = "aws configure sso";
 
-    for (const i in match_profile_list) {
-        const profile_list_string = profile_list.toString()
-        var profile_string = match_profile_list[i].split("\n")
+    var spawn = require('child_process').spawn
 
-        profile_name = profile_string[0].match(re_profile_name)
+    var p = spawn('node',['-i']);
 
-        if (profile_string[1].includes(profile_url) && !(profile_list_string.includes(profile_name))) {
-            profile_list = profile_list_string.concat(`,${profile_name[0]}`)
-        }
-    }
-
-    var aws_profiles = profile_list_string.split(",").sort()
-    console.log(aws_profiles)
+    p.stdout.on('data',function (data) {
+        console.log(data.toString())
+    });
 }
 
 const choose_workspace_prompt = () => {
@@ -332,14 +327,7 @@ const add_profile_prompt = () => {
                 type: 'input',
                 name: 'add_profile',
                 message: 'Name for your profile: ',
-                prefix: prefix_prompt,
-                validate(value) {
-                    const pass = value.match(/^[A-Za-z]+$/);
-                    if (pass) {
-                      return true;
-                    }
-                    return 'Can only contain letters';
-                  }
+                prefix: prefix_prompt
             }
         ])
         .then((value) => {
