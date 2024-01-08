@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const sas_path = '/home/kdje-prophero/kenevarle/simple-aws-switcher/'
+const sas_path = `${__dirname}/`
 const fs = require('fs');
 const inquirer = require('inquirer');
 const { exec } = require("child_process");
