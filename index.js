@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-
-const sas_path = `${__dirname}/`
 const fs = require('fs');
 const inquirer = require('inquirer');
 const { exec } = require("child_process");
@@ -15,6 +13,7 @@ const COLOR = {
 
     bgYellow: '\x1b[43m'
 }
+const sas_path = `${__dirname}/`
 
 inquirer.registerPrompt("search-list", inquirerPrompt)
 
@@ -36,9 +35,8 @@ var workspaces = []
 
 
 var getAWSConfig = fs.readFileSync(`${homedir}/.aws/config`, 'utf8');
-const re_profile_list = /\[(.*?)\][\r\n]+([^\r\n]+)/g;
 const re_profile_name = /(?<=\[profile ).+?(?=\])/g;
-const match_profile_list = getAWSConfig.match(re_profile_list);
+const match_profile_list = getAWSConfig.match(re_profile_name);
 
 const editor = `${COLOR.fgGreen}Edit${COLOR.reset}`
 const exit_prompt = `${COLOR.fgRed}EXIT${COLOR.reset}`
@@ -51,15 +49,44 @@ for (const i in Object.keys(getWorkspaces)) {
 
 
 const import_profiles = () => {
-    const aws_import_cmd = "aws configure sso";
 
-    var spawn = require('child_process').spawn
+    var profile_list = getWorkspaces[workspace_index][selected_workspace]['profiles']
+    var profile_url = getWorkspaces[workspace_index][selected_workspace]['start-url']
 
-    var p = spawn('node',['-i']);
+    inquirer
+        .prompt([
+            {
+                type: 'list',
+                name: 'import_profile',
+                message: 'Select which profile you would like to import to the current workspace: ',
+                prefix: prefix_prompt,
+                choices: match_profile_list
+            }
+        ])
+        .then((selected) => {
+            const new_profile = selected.import_profile;
+            let new_data = {
+                [selected_workspace]: {
+                    "start_url": profile_url,
+                    "profiles": profile_list.concat(new_profile)
+                }
+            }
+            remove_workspace_index = workspaces.indexOf(selected_workspace);
+            delete getWorkspaces[workspace_index];
+            var newProfiles = getWorkspaces.filter(function(e) {
+                return e != null;
+            });
+            newProfiles.push(new_data)
+            fs.writeFile(sas_path+'.config/profiles.json', JSON.stringify(newProfiles), function (err) {
+                if (err) {
+                    console.log(`error: ${err}`);
+                }
+                if (stdout) {
+                    console.log(`${COLOR.fgGreen}Successfully imported profile!${COLOR.reset}`)   
+                }
+            })
+        })
 
-    p.stdout.on('data',function (data) {
-        console.log(data.toString())
-    });
 }
 
 const choose_workspace_prompt = () => {
