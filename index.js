@@ -2,6 +2,7 @@
 const fs = require('fs');
 const inquirer = require('inquirer');
 const { exec } = require("child_process");
+const { spawn } = require('child_process');
 const { stdout, listenerCount, exit } = require('process');
 const homedir = require ('os').homedir()
 const inquirerPrompt = require('inquirer-search-list')
@@ -200,6 +201,8 @@ const choose_profile_prompt = () => {
         })
 }
 const add_workspace_prompt = () => {
+    const aws_config_file = `${process.env.HOME}/.aws/config`;
+
     inquirer
         .prompt([
             {
@@ -220,17 +223,26 @@ const add_workspace_prompt = () => {
                 name: 'start_url',
                 prefix: prefix_prompt,
                 message: 'Start URL: '
+            },
+            {
+                type: 'input',
+                name: 'workspace_region',
+                prefix: prefix_prompt,
+                message: 'Region: '
             }
         ])
         .then((value) => {
-            const ws_start_url = value.start_url;
+            const aws_start_url = value.start_url;
             const new_workspace = value.add_workspace;
+            const workspace_region = value.workspace_region;
             let new_data = {
                 [new_workspace]: {
-                    "start_url": ws_start_url,
+                    "start_url": aws_start_url,
+                    "region": workspace_region,
                     "profiles": []
                 }
             }
+            // const aws_get_id_cmd = "aws sso login --profile " + selected_profile;
             getWorkspaces.push(new_data)
             fs.writeFile(sas_path+'.config/profiles.json', JSON.stringify(getWorkspaces), function (err) {
                 if (err) {
@@ -240,6 +252,19 @@ const add_workspace_prompt = () => {
                     console.log(`${COLOR.fgGreen}Successfully added workspace!${COLOR.reset}`)   
                 }
             })
+
+            const profile_info = `
+[sso-session ${new_workspace}]
+sso_start_url = ${aws_start_url}
+sso_region = ${workspace_region}
+sso_registration_scopes = sso:account:access
+`;
+            fs.appendFile(aws_config_file, profile_info, (err) => {
+                if (err) {
+                    console.log(`error: ${err}`);
+                }
+            });
+
         })
 
 }
@@ -346,7 +371,9 @@ const edit_profile_prompt = () => {
 const add_profile_prompt = () => {
 
     var profile_list = getWorkspaces[workspace_index][selected_workspace]['profiles']
-    var profile_url = getWorkspaces[workspace_index][selected_workspace]['start-url']
+    var profile_url = getWorkspaces[workspace_index][selected_workspace]['start_url']
+    var region = getWorkspaces[workspace_index][selected_workspace]['region']
+    const aws_config_file = `${process.env.HOME}/.aws/config`;
 
     inquirer
         .prompt([
@@ -355,14 +382,28 @@ const add_profile_prompt = () => {
                 name: 'add_profile',
                 message: 'Name for your profile: ',
                 prefix: prefix_prompt
+            },
+            {
+                type: 'input',
+                name: 'profile_role',
+                message: 'Role Name: ',
+                prefix: prefix_prompt
+            },
+            {
+                type: 'input',
+                name: 'profile_account_id',
+                message: 'Account ID: ',
+                prefix: prefix_prompt
             }
         ])
         .then((value) => {
             const new_profile = value.add_profile;
+            const profile_role = value.profile_role;
+            const profile_account_id = value.profile_account_id;
             let new_data = {
                 [selected_workspace]: {
                     "start_url": profile_url,
-                    "profiles": profile_list.concat(new_profile)
+                    "profiles": profile_list.concat(new_profile),
                 }
             }
             remove_workspace_index = workspaces.indexOf(selected_workspace);
@@ -379,6 +420,21 @@ const add_profile_prompt = () => {
                     console.log(`${COLOR.fgGreen}Successfully added profile!${COLOR.reset}`)   
                 }
             })
+            const profile_info = `
+[profile ${new_profile}]
+sso_start_url = ${profile_url}
+sso_region = ${region}
+sso_role_name = ${profile_role}
+sso_account_id = ${profile_account_id}
+region = ${region}
+output = json
+sso_session = ${selected_workspace}
+`;
+            fs.appendFile(aws_config_file, profile_info, (err) => {
+                if (err) {
+                    console.log(`error: ${err}`);
+                }
+            });
         })
 
 }
