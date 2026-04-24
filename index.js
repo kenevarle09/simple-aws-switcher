@@ -2,7 +2,6 @@
 const fs = require('fs');
 const inquirer = require('inquirer');
 const { exec } = require("child_process");
-const { spawn } = require('child_process');
 const { stdout, listenerCount, exit } = require('process');
 const homedir = require ('os').homedir()
 const inquirerPrompt = require('inquirer-search-list')
@@ -61,31 +60,41 @@ const import_profiles = () => {
                 name: 'import_profile',
                 message: 'Select which profile you would like to import to the current workspace: ',
                 prefix: prefix_prompt,
-                choices: match_profile_list
+                choices: match_profile_list.concat([back_prompt])
             }
         ])
         .then((selected) => {
-            const new_profile = selected.import_profile;
-            let new_data = {
-                [selected_workspace]: {
-                    "start_url": profile_url,
-                    "profiles": profile_list.concat(new_profile)
-                }
+            console.log(profile_list.indexOf(selected.import_profile))
+            if (selected.import_profile === back_prompt){
+                edit_profile_prompt()
             }
-            remove_workspace_index = workspaces.indexOf(selected_workspace);
-            delete getWorkspaces[workspace_index];
-            var newProfiles = getWorkspaces.filter(function(e) {
-                return e != null;
-            });
-            newProfiles.push(new_data)
-            fs.writeFile(sas_path+'.config/profiles.json', JSON.stringify(newProfiles), function (err) {
-                if (err) {
-                    console.log(`error: ${err}`);
+            else if (profile_list.indexOf(selected.import_profile) > -1) {
+                console.log(`${COLOR.fgRed}Profile already exists in workspace!${COLOR.reset}`)
+                import_profiles()
+            }
+            else {
+                const new_profile = selected.import_profile;
+                let new_data = {
+                    [selected_workspace]: {
+                        "start_url": profile_url,
+                        "profiles": profile_list.concat(new_profile)
+                    }
                 }
-                if (stdout) {
-                    console.log(`${COLOR.fgGreen}Successfully imported profile!${COLOR.reset}`)   
-                }
-            })
+                remove_workspace_index = workspaces.indexOf(selected_workspace);
+                delete getWorkspaces[workspace_index];
+                var newProfiles = getWorkspaces.filter(function(e) {
+                    return e != null;
+                });
+                newProfiles.push(new_data)
+                fs.writeFile(sas_path+'.config/profiles.json', JSON.stringify(newProfiles), function (err) {
+                    if (err) {
+                        console.log(`error: ${err}`);
+                    }
+                    if (stdout) {
+                        console.log(`${COLOR.fgGreen}Successfully imported profile!${COLOR.reset}`)   
+                    }
+                })
+            }
         })
 
 }
@@ -168,7 +177,6 @@ const choose_profile_prompt = () => {
                                 return;
                             }
                             if (stdout) {
-                                console.log(stdout.message)
                                 console.log("Login success. Switching profile...");
                                 exec(aws_sts_cmd, (error, stdout) => {
                                     if (error) {
@@ -403,6 +411,7 @@ const add_profile_prompt = () => {
             let new_data = {
                 [selected_workspace]: {
                     "start_url": profile_url,
+                    "region": region,
                     "profiles": profile_list.concat(new_profile),
                 }
             }
@@ -465,7 +474,7 @@ const remove_profile_prompt = () => {
         {
             type: 'search-list',
             name: 'remove_profile',
-            message: `${COLOR.fgYellow}Select Worksapce to remove${COLOR.reset}`,
+            message: `${COLOR.fgYellow}Select profile to remove${COLOR.reset}`,
             prefix: prefix_prompt,
             choices: profile_list.concat([back_prompt, exit_prompt])
         }
